@@ -49,10 +49,9 @@ sudo yum install -y nodejs npm lsof curl python3 python3-pip jq
 
 ### 2. کلون کردن مخزن
 ```bash
-git clone https://github.com/YOUR_USERNAME/mtproto-proxy-manager.git /opt/mtproxy-manager
+git clone https://github.com/Hamedunn/MTProtoU.git /opt/mtproxy-manager
 cd /opt/mtproxy-manager
 ```
-> `YOUR_USERNAME` را با نام کاربری GitHub خود جایگزین کنید.
 
 ---
 

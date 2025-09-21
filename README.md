@@ -1,118 +1,137 @@
-MTProto Proxy Manager
-A user-friendly web-based interface for managing MTProto proxy services (Official, Python, and Golang implementations) without requiring terminal commands. This tool allows users to install, configure, start, stop, restart, and uninstall MTProto proxies through a modern, intuitive UI built with React and Tailwind CSS, backed by a Node.js server.
-Features
+# MTProto Proxy Manager
 
-Dashboard: View all installed proxies with their status, ports, and connection links.
-Installation: Install Official, Python, or Golang MTProto proxies with customizable settings (port, secrets, AD tag, workers, TLS domain, NAT, etc.).
-Management: Start, stop, restart, or uninstall proxy services with a single click.
-Configuration: Manage secrets, AD tags, workers, NAT settings, and secure modes via forms.
-Firewall Support: Generate and apply firewall rules for CentOS, Ubuntu, or Debian.
-Non-Terminal Experience: No command-line knowledge required, making it accessible for non-programmers.
-Random Port Selection: The web server runs on a random, unused port for security and flexibility.
+یک رابط کاربری تحت وب و کاربرپسند برای مدیریت سرویس‌های MTProto Proxy (نسخه‌های Official، Python و Golang) بدون نیاز به استفاده از دستورات ترمینال.  
+این ابزار به شما اجازه می‌دهد تا پراکسی‌ها را **نصب، پیکربندی، اجرا، توقف، ری‌استارت و حذف** کنید، همه از طریق یک UI مدرن که با **React و Tailwind CSS** ساخته شده و یک **سرور Node.js** آن را پشتیبانی می‌کند.
 
-Prerequisites
+---
 
-A server running Ubuntu, Debian, or CentOS.
-Root access (required for proxy installation and management).
-Node.js and npm installed.
-Dependencies: lsof, curl, python3, pip, and jq for script execution.
-Internet access for downloading dependencies and proxy configurations.
+## ✨ ویژگی‌ها
 
-Installation
-Follow these steps to set up the MTProto Proxy Manager on your server:
+- **داشبورد:** مشاهده تمام پراکسی‌های نصب شده همراه با وضعیت، پورت و لینک اتصال.  
+- **نصب:** نصب پراکسی Official، Python یا Golang با تنظیمات قابل سفارشی‌سازی (پورت، سکرت، AD Tag، Workers، TLS Domain، NAT و ...).  
+- **مدیریت:** استارت، استاپ، ری‌استارت یا حذف سرویس‌ها تنها با یک کلیک.  
+- **پیکربندی:** مدیریت سکرت‌ها، AD Tag، Workers، تنظیمات NAT و حالت‌های امن از طریق فرم‌ها.  
+- **فایروال:** ایجاد و اعمال قوانین فایروال برای CentOS، Ubuntu یا Debian.  
+- **بدون ترمینال:** مناسب کاربران غیر فنی، بدون نیاز به دستورات CLI.  
+- **پورت تصادفی:** سرور روی یک پورت تصادفی و آزاد اجرا می‌شود تا امنیت و انعطاف بیشتری داشته باشد.  
 
-Install System Dependencies
+---
 
-For Ubuntu/Debian:sudo apt-get update
+## 📋 پیش‌نیازها
+
+- یک سرور با Ubuntu، Debian یا CentOS  
+- دسترسی Root  
+- نصب بودن Node.js و npm  
+- وابستگی‌ها: `lsof`, `curl`, `python3`, `pip`, `jq`  
+- دسترسی به اینترنت برای دانلود و پیکربندی‌ها  
+
+---
+
+## ⚙️ نصب
+
+### 1. نصب وابستگی‌های سیستمی
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get update
 sudo apt-get install -y nodejs npm lsof curl python3 python3-pip jq
+```
 
-
-For CentOS:sudo yum install -y epel-release
+**CentOS:**
+```bash
+sudo yum install -y epel-release
 sudo yum install -y nodejs npm lsof curl python3 python3-pip jq
+```
 
+---
 
-
-
-Clone the Repository
+### 2. کلون کردن مخزن
+```bash
 git clone https://github.com/YOUR_USERNAME/mtproto-proxy-manager.git /opt/mtproxy-manager
 cd /opt/mtproxy-manager
+```
+> `YOUR_USERNAME` را با نام کاربری GitHub خود جایگزین کنید.
 
-Replace YOUR_USERNAME with your GitHub username.
+---
 
-Install Node.js Dependencies
+### 3. نصب وابستگی‌های Node.js
+```bash
 npm install express
+```
 
+---
 
-Set Up File Structure
+### 4. تنظیم ساختار فایل‌ها
+مطمئن شوید فایل‌های زیر در مسیر `/opt/mtproxy-manager` وجود داشته باشند:
+- `index.html` (رابط کاربری React)
+- `server.js` (بک‌اند Node.js)
+- `MTProtoProxyOfficialInstall.sh` (اسکریپت نصب Official Proxy)
+- `MTProtoProxyInstall.sh` (اسکریپت نصب Python Proxy)
+- `MTGInstall.sh` (اسکریپت نصب Golang Proxy)
 
-Ensure the following files are in /opt/mtproxy-manager:
-index.html (React UI)
-server.js (Node.js backend)
-MTProtoProxyOfficialInstall.sh (Official proxy script)
-MTProtoProxyInstall.sh (Python proxy script)
-MTGInstall.sh (Golang proxy script)
+سپس:
 
-
-Create a public directory and move index.html:mkdir -p public
+```bash
+mkdir -p public
 mv index.html public/
+chmod +x *.sh
+```
 
+---
 
-Make scripts executable:chmod +x *.sh
-
-
-
-
-Run the Server
+### 5. اجرای سرور
+```bash
 node server.js
+```
 
+سرور روی یک پورت تصادفی (مثلاً `http://localhost:54321`) اجرا خواهد شد.  
+آدرس در ترمینال نمایش داده می‌شود.
 
-The server will start on a random port (e.g., http://localhost:54321).
-Note the URL displayed in the terminal.
+---
 
+### 6. دسترسی به UI
+- مرورگر خود را باز کنید و آدرس نمایش داده شده (مثلاً `http://localhost:54321`) را وارد کنید.  
+- اگر از راه دور وصل می‌شوید، مطمئن شوید فایروال سرور اجازه دسترسی به پورت مربوطه را می‌دهد (`ufw` یا `firewall-cmd`).  
 
-Access the Web UI
+---
 
-Open the URL (e.g., http://localhost:54321) in a web browser.
-If accessing remotely, ensure the server’s firewall allows the random port (check with ufw or firewall-cmd).
+## 🚀 استفاده
 
+- **داشبورد:** مشاهده پراکسی‌های نصب‌شده، وضعیت و لینک اتصال Telegram.  
+- **نصب پراکسی:**  
+  - انتخاب "Install Official Proxy"، "Install Python Proxy" یا "Install Golang Proxy".  
+  - پر کردن فرم (پورت، سکرت، AD Tag، Workers، TLS Domain، NAT و ...).  
+- **مدیریت:** اجرای دستورات Start, Stop, Restart یا Uninstall.  
+- **پیکربندی:** تغییر سکرت، AD Tag یا سایر تنظیمات از طریق بخش Configure.  
+- **قوانین فایروال:** حین نصب نمایش داده می‌شوند و قابل اعمال هستند.  
+- **لینک اتصال:** کپی `tg://proxy` از داشبورد برای استفاده در Telegram.  
 
+---
 
-Usage
+## 📌 نکات
 
-Dashboard: View installed proxies, their statuses, ports, and Telegram connection links.
-Install a Proxy:
-Click "Install Official Proxy," "Install Python Proxy," or "Install Golang Proxy."
-Fill in the form (port, secrets, AD tag, workers, TLS domain, NAT settings, etc.).
-Submit to install the proxy.
+- **امنیت:** اجرای سرور باید با دسترسی Root باشد. برای محیط Production پیشنهاد می‌شود **احراز هویت** به UI اضافه شود.  
+- **Erlang Proxy:** پشتیبانی از نسخه Erlang (mtp_install.sh) فعلاً وجود ندارد اما می‌توان به بک‌اند اضافه کرد.  
+- **وابستگی‌ها:** مطمئن شوید `jq` نصب است تا اسکریپت Python درست کار کند.  
+- **تداخل پورت:** سرور همیشه یک پورت تصادفی انتخاب می‌کند. در صورت عدم دسترسی، تنظیمات فایروال را بررسی کنید.  
+- **به‌روزرسانی:** برای تغییر سکرت یا TLS Domain از بخش "Configure" استفاده کنید.  
 
+---
 
-Manage Proxies:
-Use buttons to start, stop, restart, or uninstall proxies.
-Configure settings like secrets or AD tags via the "Configure" button.
+## 🤝 مشارکت
 
+پیشنهادات و بهبودها خوشحالمان می‌کند! لطفاً Pull Request بفرستید یا Issue باز کنید.  
 
-Firewall Rules:
-During installation, firewall rules for the proxy port are displayed and can be applied.
+---
 
+## 📄 لایسنس
 
-Connection Links:
-Copy tg://proxy links from the dashboard to configure Telegram clients.
+این پروژه تحت **MIT License** منتشر شده است. جزئیات در فایل [LICENSE](LICENSE).  
 
+---
 
+## 🙏 تقدیر و تشکر
 
-Notes
-
-Security: The server must run as root to manage system services. For production, consider adding authentication to the web UI.
-Erlang Proxy: Support for the Erlang proxy (mtp_install.sh) is not included but can be added by extending the backend.
-Dependencies: Ensure all dependencies are installed, especially jq for parsing JSON in the Python proxy script.
-Port Conflicts: The server automatically selects a random port to avoid conflicts. Check firewall settings if the UI is inaccessible.
-Updates: To update proxy configurations (e.g., secrets or TLS domains), use the "Configure" option in the UI.
-
-Contributing
-Contributions are welcome! Please submit a pull request or open an issue on GitHub for bugs, features, or improvements.
-License
-This project is licensed under the MIT License. See the LICENSE file for details.
-Credits
-
-Original proxy scripts by Hirbod Behnam.
-Built with React, Tailwind CSS, and Node.js.
+- اسکریپت‌های اصلی پراکسی توسط **Hirbod Behnam**  
+- رابط کاربری ساخته‌شده با **React** و **Tailwind CSS**  
+- بک‌اند توسعه‌یافته با **Node.js**  

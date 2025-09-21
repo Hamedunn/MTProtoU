@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MTProto Proxy Manager</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.6.7/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/babel-standalone@7.22.9/Babel.min.js"></script>
+</head>
+<body>
+  <div id="root" class="bg-gray-100 min-h-screen"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function App() {
+      const [services, setServices] = useState([]);
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState('');
+      const [modal, setModal] = useState(null);
+      const [formData, setFormData] = useState({});
+
+      // Fetch installed services
+      useEffect(() => {
+        fetchServices();
+      }, []);
+
+      const fetchServices = async () => {
+        setLoading(true);
+        try {
+          const response = await axios.get('/api/services');
+          setServices(response.data);
+          setError('');
+        } catch (err) {
+          setError('Failed to fetch services: ' + err.message);
+        }
+        setLoading(false);
+      };
+
+      const handleInstall = async (type) => {
+        setFormData({ type, port: -1, secrets: [{ username: 'User1', secret: '' }], tag: '', workers: '', tlsDomain: 'www.cloudflare.com', nat: 'n', publicIp: '', privateIp: '', customArgs: '', secureMode: '3' });
+        setModal('install');
+      };
+
+      const handleAction = async (action, service) => {
+        setLoading(true);
+        try {
+          await axios.post('/api/action', { action, service });
+          fetchServices();
+          setError('');
+        } catch (err) {
+          setError(`Failed to ${action} ${service}: ${err.message}`);
+        }
+        setLoading(false);
+      };
+
+      const handleFormSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+          await axios.post('/api/install', formData);
+          fetchServices();
+          setModal(null);
+          setError('');
+        } catch (err) {
+          setError('Installation failed: ' + err.message);
+        }
+        setLoading(false);
+      };
+
+      const renderModal = () => {
+        if (!modal) return null;
+        return (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="bg-white p-6 rounded-lg w-full max-w-lg">
+              <h2 className="text-xl font-bold mb-4">Install {formData.type} Proxy</h2>
+              <form onSubmit={handleFormSubmit}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium">Port (-1 for random)</label>
+                  <input
+                    type="number"
+                    value={formData.port}
+                    onChange={(e) => setFormData({ ...formData, port: e.target.value })}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium">Secrets</label>
+                  {formData.secrets.map((s, idx) => (
+                    <div key={idx} className="flex space-x-2 mb-2">
+                      <input
+                        type="text"
+                        placeholder="Username"
+                        value={s.username}
+                        onChange={(e) => {
+                          const newSecrets = [...formData.secrets];
+                          newSecrets[idx].username = e.target.value;
+                          setFormData({ ...formData, secrets: newSecrets });
+                        }}
+                        className="w-1/2 p-2 border rounded"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Secret (32 hex chars or empty for random)"
+                        value={s.secret}
+                        onChange={(e) => {
+                          const newSecrets = [...formData.secrets];
+                          newSecrets[idx].secret = e.target.value;
+                          setFormData({ ...formData, secrets: newSecrets });
+                        }}
+                        className="w-1/2 p-2 border rounded"
+                      />
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, secrets: [...formData.secrets, { username: `User${formData.secrets.length + 1}`, secret: '' }] })}
+                    className="text-blue-600"
+                  >
+                    Add Secret
+                  </button>
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium">AD Tag</label>
+                  <input
+                    type="text"
+                    value={formData.tag}
+                    onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+                {formData.type === 'Official' && (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium">Workers (1-16)</label>
+                    <input
+                      type="number"
+                      value={formData.workers}
+                      onChange={(e) => setFormData({ ...formData, workers: e.target.value })}
+                      className="w-full p-2 border rounded"
+                    />
+                  </div>
+                )}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium">TLS Domain</label>
+                  <input
+                    type="text"
+                    value={formData.tlsDomain}
+                    onChange={(e) => setFormData({ ...formData, tlsDomain: e.target.value })}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium">Behind NAT?</label>
+                  <select
+                    value={formData.nat}
+                    onChange={(e) => setFormData({ ...formData, nat: e.target.value })}
+                    className="w-full p-2 border rounded"
+                  >
+                    <option value="n">No</option>
+                    <option value="y">Yes</option>
+                  </select>
+                </div>
+                {formData.nat === 'y' && (
+                  <>
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium">Public IP</label>
+                      <input
+                        type="text"
+                        value={formData.publicIp}
+                        onChange={(e) => setFormData({ ...formData, publicIp: e.target.value })}
+                        className="w-full p-2 border rounded"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium">Private IP</label>
+                      <input
+                        type="text"
+                        value={formData.privateIp}
+                        onChange={(e) => setFormData({ ...formData, privateIp: e.target.value })}
+                        className="w-full p-2 border rounded"
+                      />
+                    </div>
+                  </>
+                )}
+                {formData.type === 'Python' && (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium">Secure Mode</label>
+                    <select
+                      value={formData.secureMode}
+                      onChange={(e) => setFormData({ ...formData, secureMode: e.target.value })}
+                      className="w-full p-2 border rounded"
+                    >
+                      <option value="1">No Restrictions</option>
+                      <option value="2">dd secrets and TLS</option>
+                      <option value="3">TLS only</option>
+                    </select>
+                  </div>
+                )}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium">Custom Arguments</label>
+                  <input
+                    type="text"
+                    value={formData.customArgs}
+                    onChange={(e) => setFormData({ ...formData, customArgs: e.target.value })}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <button type="button" onClick={() => setModal(null)} className="px-4 py-2 bg-gray-300 rounded">Cancel</button>
+                  <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">Install</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        );
+      };
+
+      return (
+        <div className="container mx-auto p-6">
+          <h1 className="text-3xl font-bold mb-6">MTProto Proxy Manager</h1>
+          {error && <div className="bg-red-100 text-red-700 p-4 mb-4 rounded">{error}</div>}
+          {loading && <div className="text-center">Loading...</div>}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-white p-4 rounded shadow">
+              <h2 className="text-lg font-semibold">Install New Proxy</h2>
+              <div className="mt-4 space-y-2">
+                <button onClick={() => handleInstall('Official')} className="w-full p-2 bg-blue-600 text-white rounded">Install Official Proxy</button>
+                <button onClick={() => handleInstall('Python')} className="w-full p-2 bg-blue-600 text-white rounded">Install Python Proxy</button>
+                <button onClick={() => handleInstall('Golang')} className="w-full p-2 bg-blue-600 text-white rounded">Install Golang Proxy</button>
+              </div>
+            </div>
+            {services.map((service) => (
+              <div key={service.type} className="bg-white p-4 rounded shadow">
+                <h2 className="text-lg font-semibold">{service.type} Proxy</h2>
+                <p>Status: {service.status}</p>
+                <p>Port: {service.port}</p>
+                <p>Links:</p>
+                <ul className="list-disc pl-5">
+                  {service.links.map((link, idx) => (
+                    <li key={idx}>{link}</li>
+                  ))}
+                </ul>
+                <div className="mt-4 space-y-2">
+                  <button onClick={() => handleAction('start', service.type)} className="w-full p-2 bg-green-600 text-white rounded">Start</button>
+                  <button onClick={() => handleAction('stop', service.type)} className="w-full p-2 bg-red-600 text-white rounded">Stop</button>
+                  <button onClick={() => handleAction('restart', service.type)} className="w-full p-2 bg-yellow-600 text-white rounded">Restart</button>
+                  <button onClick={() => handleAction('uninstall', service.type)} className="w-full p-2 bg-gray-600 text-white rounded">Uninstall</button>
+                  <button onClick={() => setModal({ type: 'config', service })} className="w-full p-2 bg-blue-600 text-white rounded">Configure</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          {renderModal()}
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
